@@ -1443,13 +1443,17 @@ async function mdFetch(path) {
 // COVER / TYPE HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
 function proxyCover(url) {
-  if (!url) return null;
-  return 'https://wsrv.nl/?url=' + encodeURIComponent(url.replace(/^https?:\/\//, ''));
+  if (!url) return url;
+  // Convert any stored full CDN URL to the local proxy path
+  if (url.includes('uploads.mangadex.org/covers/')) {
+    return url.replace('https://uploads.mangadex.org/covers/', '/mdcovers/');
+  }
+  return url;
 }
 function coverUrl(manga) {
   const rel = (manga.relationships || []).find(r => r.type === 'cover_art');
   if (!rel?.attributes?.fileName) return null;
-  return proxyCover(`${COVERS}/${manga.id}/${rel.attributes.fileName}.512.jpg`);
+  return `/mdcovers/${manga.id}/${rel.attributes.fileName}.512.jpg`;
 }
 function mdType(manga) {
   const lang = manga.attributes?.originalLanguage;
@@ -1963,7 +1967,7 @@ window.renderLog = function() {
     return;
   }
   list.innerHTML = [...updLog].sort((a,b)=>b.time-a.time).map(u =>
-    '<div class="log-entry'+(u.read?'':' unread')+'">'+(u.cover?'<img class="log-cover" src="'+esc(proxyCover(u.cover)||u.cover)+'" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" alt=""><div class="log-cover-ph" style="display:none">'+u.title.charAt(0)+'</div>':'<div class="log-cover-ph">'+u.title.charAt(0)+'</div>')+'<div class="log-info"><div class="log-title-txt">'+esc(u.title)+'</div><div class="log-ch">Ch.'+u.oldCh+' → Ch.'+u.newCh+' <span style="color:var(--muted);font-size:9px">(+'+(u.newCh-u.oldCh).toFixed(1).replace(/\.0$/,'')+')</span>'+(u.source?' <span style="color:var(--accent3);font-size:9px">· '+esc(u.source)+'</span>':'')+'</div></div><div class="log-time">'+timeAgo(u.time)+'</div></div>'
+    '<div class="log-entry'+(u.read?'':' unread')+'">'+(u.cover?'<img class="log-cover" src="'+esc(u.cover)+'" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" alt=""><div class="log-cover-ph" style="display:none">'+u.title.charAt(0)+'</div>':'<div class="log-cover-ph">'+u.title.charAt(0)+'</div>')+'<div class="log-info"><div class="log-title-txt">'+esc(u.title)+'</div><div class="log-ch">Ch.'+u.oldCh+' → Ch.'+u.newCh+' <span style="color:var(--muted);font-size:9px">(+'+(u.newCh-u.oldCh).toFixed(1).replace(/\.0$/,'')+')</span>'+(u.source?' <span style="color:var(--accent3);font-size:9px">· '+esc(u.source)+'</span>':'')+'</div></div><div class="log-time">'+timeAgo(u.time)+'</div></div>'
   ).join('');
 };
 
