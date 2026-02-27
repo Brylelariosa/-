@@ -1959,7 +1959,7 @@ window.renderLog = function() {
     return;
   }
   list.innerHTML = [...updLog].sort((a,b)=>b.time-a.time).map(u =>
-    '<div class="log-entry'+(u.read?'':' unread')+'">'+(u.cover?'<img class="log-cover" src="'+esc(u.cover)+'" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" alt=""><div class="log-cover-ph" style="display:none">'+u.title.charAt(0)+'</div>':'<div class="log-cover-ph">'+u.title.charAt(0)+'</div>')+'<div class="log-info"><div class="log-title-txt">'+esc(u.title)+'</div><div class="log-ch">Ch.'+u.oldCh+' → Ch.'+u.newCh+' <span style="color:var(--muted);font-size:9px">(+'+(u.newCh-u.oldCh).toFixed(1).replace(/\.0$/,'')+')</span>'+(u.source?' <span style="color:var(--accent3);font-size:9px">· '+esc(u.source)+'</span>':'')+'</div></div><div class="log-time">'+timeAgo(u.time)+'</div></div>'
+    '<div class="log-entry'+(u.read?'':' unread')+'">'+(u.cover?'<img class="log-cover" src="'+esc(u.cover)+'" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" alt=""><div class="log-cover-ph" style="display:none">'+u.title.charAt(0)+'</div>':'<div class="log-cover-ph">'+u.title.charAt(0)+'</div>')+'<div class="log-info"><div class="log-title-txt">'+esc(u.title)+'</div><div class="log-ch">Ch.'+u.oldCh+' → Ch.'+u.newCh+' <span style="color:var(--muted);font-size:9px">(+'+(u.newCh-u.oldCh).toFixed(1).replace(/\.0$/,'')+')</span>'+(u.source?' <span style="color:var(--accent3);font-size:9px">· '+esc(u.source)+'</span>':'')+'</div></div><div class="log-time">'+timeAgo(u.time)+'</div></div>'
   ).join('');
 };
 
@@ -2111,7 +2111,7 @@ async function save(){const title=document.getElementById('f-title').value.trim(
 // ─────────────────────────────────────────────────────────────────────────────
 // MANGADEX LIVE SEARCH
 // ─────────────────────────────────────────────────────────────────────────────
-function onMDSearch(e){clearTimeout(mdTimer);const val=e.target.value.trim();const results=document.getElementById('md-results');if(!val){results.classList.remove('open');return;}results.innerHTML='<div class="sr-msg loading">SEARCHING MANGADEX…</div>';results.classList.add('open');mdTimer=setTimeout(async()=>{try{const data=await searchMD(val);if(!data.length){results.innerHTML='<div class="sr-msg">No results found</div>';return;}results.innerHTML=data.map(m=>{const title=m.attributes.title.en||Object.values(m.attributes.title)[0]||'Unknown';const type=mdType(m);const status=m.attributes.status||'ongoing';const cover=coverUrl(m);const info=JSON.stringify({id:m.id,title,type,status,cover:cover||'',contentRating:m.attributes.contentRating||'safe'});return '<div class="sr-item" onclick=\'selectMD('+info.replace(/'/g,"&#39;")+')\'>'+  (cover?'<img class="sr-thumb" src="'+esc(cover)+'" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" alt=""><div class="sr-ph" style="display:none">'+title.charAt(0)+'</div>':'<div class="sr-ph">'+title.charAt(0)+'</div>')+'<div class="sr-info"><div class="sr-name">'+esc(title)+'</div><div class="sr-meta">'+type+' · '+status+'</div></div></div>';}).join('');}catch(err){results.innerHTML='<div class="sr-msg">Error: '+esc(err.message)+'</div>';}},600);}
+function onMDSearch(e){clearTimeout(mdTimer);const val=e.target.value.trim();const results=document.getElementById('md-results');if(!val){results.classList.remove('open');return;}results.innerHTML='<div class="sr-msg loading">SEARCHING MANGADEX…</div>';results.classList.add('open');mdTimer=setTimeout(async()=>{try{const data=await searchMD(val);if(!data.length){results.innerHTML='<div class="sr-msg">No results found</div>';return;}results.innerHTML=data.map(m=>{const title=m.attributes.title.en||Object.values(m.attributes.title)[0]||'Unknown';const type=mdType(m);const status=m.attributes.status||'ongoing';const cover=coverUrl(m);const info=JSON.stringify({id:m.id,title,type,status,cover:cover||'',contentRating:m.attributes.contentRating||'safe'});return '<div class="sr-item" onclick=\'selectMD('+info.replace(/'/g,"&#39;")+')\'>'+  (cover?'<img class="sr-thumb" src="'+esc(cover)+'" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" alt=""><div class="sr-ph" style="display:none">'+title.charAt(0)+'</div>':'<div class="sr-ph">'+title.charAt(0)+'</div>')+'<div class="sr-info"><div class="sr-name">'+esc(title)+'</div><div class="sr-meta">'+type+' · '+status+'</div></div></div>';}).join('');}catch(err){results.innerHTML='<div class="sr-msg">Error: '+esc(err.message)+'</div>';}},600);}
 async function selectMD(info){document.getElementById('f-title').value=info.title;checkDuplicate(info.title);document.getElementById('f-type').value=info.type;document.getElementById('f-mdid').value=info.id;window._pendingCR=info.contentRating||'safe';document.getElementById('f-chlatest').value='0';const disp=document.getElementById('f-chlatest-display');disp.textContent='Fetching…';disp.style.color='var(--muted)';document.getElementById('md-results').classList.remove('open');document.getElementById('md-search').value='';showToast('Fetching latest chapter…');try{const r=await getLatestCh(info.id,'');if(r?.ch>0){document.getElementById('f-chlatest').value=r.ch;disp.textContent='Ch.'+r.ch+'  ('+r.source+')';disp.style.color='var(--accent3)';showToast('Latest: Ch.'+r.ch+' ✓');}else{disp.textContent='Not found — will fetch on Check Updates';showToast('Could not fetch chapter','err');}}catch{disp.textContent='Error — will retry on Check Updates';}}
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -2166,6 +2166,23 @@ window.showToast = function(msg, type) {
   t._t = setTimeout(() => t.classList.remove('show'), 3500);
 };
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── GLOBAL COVER FALLBACK ────────────────────────────────────────────────────
+// MangaDex serves .512.jpg quality variants — if one 404s, try .256.jpg before
+// giving up and showing the placeholder. Runs in capture phase so it fires
+// before any onerror attribute, temporarily disabling it for the first retry.
+document.addEventListener('error', function(e) {
+  const el = e.target;
+  if (el.tagName !== 'IMG' || el.dataset.fb) return;
+  const src = el.src || '';
+  if (src.includes('.512.jpg')) {
+    el.dataset.fb = '1';
+    const saved = el.onerror;
+    el.onerror = null;                            // suppress hide on first retry
+    el.src = src.replace('.512.jpg', '.256.jpg');
+    setTimeout(() => { el.onerror = saved; }, 0); // restore for second failure
+  }
+}, true);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CARD DETAIL MODAL
