@@ -1442,10 +1442,14 @@ async function mdFetch(path) {
 // ─────────────────────────────────────────────────────────────────────────────
 // COVER / TYPE HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
+function proxyCover(url) {
+  if (!url) return null;
+  return 'https://wsrv.nl/?url=' + encodeURIComponent(url.replace(/^https?:\/\//, ''));
+}
 function coverUrl(manga) {
   const rel = (manga.relationships || []).find(r => r.type === 'cover_art');
   if (!rel?.attributes?.fileName) return null;
-  return `${COVERS}/${manga.id}/${rel.attributes.fileName}.512.jpg`;
+  return proxyCover(`${COVERS}/${manga.id}/${rel.attributes.fileName}.512.jpg`);
 }
 function mdType(manga) {
   const lang = manga.attributes?.originalLanguage;
@@ -1838,7 +1842,7 @@ window.renderLib = function() {
     const crBadge = crLabel ? ' <span class="cr-badge cr-'+(m.contentRating)+'">'+crLabel+'</span>' : '';
     return '<div class="card'+(hasNew?' has-new':'')+'" id="card-'+m.id+'">'
       +(hasNew?'<div class="new-pill">New Ch.</div>':'')
-      +(m.cover?'<img class="card-cover" src="'+esc(m.cover)+'" loading="eager" referrerpolicy="no-referrer" onload="this.classList.add(\'loaded\')" onerror="this.style.display=\x27none\x27;this.nextElementSibling.style.display=\x27flex\x27" onclick="openDetail(\''+m.id+'\')" alt="">':'')
+      +(m.cover?'<img class="card-cover" src="'+esc(proxyCover(m.cover)||m.cover)+'" loading="eager" referrerpolicy="no-referrer" onload="this.classList.add(\'loaded\')" onerror="this.style.display=\x27none\x27;this.nextElementSibling.style.display=\x27flex\x27" onclick="openDetail(\''+m.id+'\')" alt="">':'')
       +'<div class="cover-ph"'+(m.cover?' style="display:none"':'')+' onclick="openDetail(\''+m.id+'\')">'+m.title.charAt(0).toUpperCase()+'</div>'
       +'<div class="card-body">'
         +'<div class="card-type type-'+m.type+'">'+m.type.toUpperCase()+crBadge+'</div>'
@@ -1959,7 +1963,7 @@ window.renderLog = function() {
     return;
   }
   list.innerHTML = [...updLog].sort((a,b)=>b.time-a.time).map(u =>
-    '<div class="log-entry'+(u.read?'':' unread')+'">'+(u.cover?'<img class="log-cover" src="'+esc(u.cover)+'" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" alt=""><div class="log-cover-ph" style="display:none">'+u.title.charAt(0)+'</div>':'<div class="log-cover-ph">'+u.title.charAt(0)+'</div>')+'<div class="log-info"><div class="log-title-txt">'+esc(u.title)+'</div><div class="log-ch">Ch.'+u.oldCh+' → Ch.'+u.newCh+' <span style="color:var(--muted);font-size:9px">(+'+(u.newCh-u.oldCh).toFixed(1).replace(/\.0$/,'')+')</span>'+(u.source?' <span style="color:var(--accent3);font-size:9px">· '+esc(u.source)+'</span>':'')+'</div></div><div class="log-time">'+timeAgo(u.time)+'</div></div>'
+    '<div class="log-entry'+(u.read?'':' unread')+'">'+(u.cover?'<img class="log-cover" src="'+esc(proxyCover(u.cover)||u.cover)+'" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" alt=""><div class="log-cover-ph" style="display:none">'+u.title.charAt(0)+'</div>':'<div class="log-cover-ph">'+u.title.charAt(0)+'</div>')+'<div class="log-info"><div class="log-title-txt">'+esc(u.title)+'</div><div class="log-ch">Ch.'+u.oldCh+' → Ch.'+u.newCh+' <span style="color:var(--muted);font-size:9px">(+'+(u.newCh-u.oldCh).toFixed(1).replace(/\.0$/,'')+')</span>'+(u.source?' <span style="color:var(--accent3);font-size:9px">· '+esc(u.source)+'</span>':'')+'</div></div><div class="log-time">'+timeAgo(u.time)+'</div></div>'
   ).join('');
 };
 
@@ -2219,7 +2223,7 @@ function openDetail(id) {
   const ph = document.getElementById('detail-cover-ph');
   if (m.cover) {
     img.classList.remove('loaded');
-    img.src = m.cover;
+    img.src = proxyCover(m.cover) || m.cover;
     img.style.display = '';
     ph.style.display = 'none';
     ph.textContent = '';
