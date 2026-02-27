@@ -559,6 +559,8 @@ header { padding:28px 0 20px; border-bottom:1px solid var(--border); display:fle
 .pag-btn.active { border-color:var(--accent);color:var(--accent);background:rgba(232,56,90,.1); }
 
 /* ── CARD DETAIL MODAL ───────────────────────────────────── */
+.detail-cover:not(.loaded) { background:linear-gradient(90deg,var(--surface) 25%,var(--border) 50%,var(--surface) 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; }
+.detail-cover.loaded { background:var(--surface); animation:none; }
 .detail-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:250;backdrop-filter:blur(8px);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y; }
 .detail-overlay.open { display:flex; }
 body.detail-open { overflow:hidden;position:fixed;width:100%; }
@@ -841,7 +843,7 @@ body.detail-open { overflow:hidden;position:fixed;width:100%; }
     </div>
     <div class="detail-hero">
       <div class="detail-cover-wrap">
-        <img class="detail-cover" id="detail-cover-img" src="" referrerpolicy="no-referrer" alt="" onerror="this.style.display='none';document.getElementById('detail-cover-ph').style.display='flex'">
+        <img class="detail-cover" id="detail-cover-img" src="" referrerpolicy="no-referrer" alt="" onload="this.classList.add('loaded')" onerror="this.style.display='none';document.getElementById('detail-cover-ph').style.display='flex'">
         <div class="detail-cover-ph" id="detail-cover-ph" style="display:none"></div>
       </div>
       <div class="detail-hero-info">
@@ -1867,6 +1869,12 @@ window.renderLib = function() {
     +'</div>';
   }).join('');
 
+  // Mark covers that are already in the browser cache as loaded immediately,
+  // so they don't shimmer every time renderLib() rebuilds the grid HTML.
+  document.querySelectorAll('#grid .card-cover').forEach(img => {
+    if (img.complete && img.naturalWidth > 0) img.classList.add('loaded');
+  });
+
   // Render pagination controls
   if (pag) {
     if (totalPages <= 1) {
@@ -2192,7 +2200,15 @@ function openDetail(id) {
   // Cover
   const img = document.getElementById('detail-cover-img');
   const ph = document.getElementById('detail-cover-ph');
-  if (m.cover) { img.src = m.cover; img.style.display = ''; ph.style.display = 'none'; ph.textContent = ''; }
+  if (m.cover) {
+    img.classList.remove('loaded');
+    img.src = m.cover;
+    img.style.display = '';
+    ph.style.display = 'none';
+    ph.textContent = '';
+    // If already cached, mark loaded immediately; otherwise wait for onload
+    if (img.complete && img.naturalWidth > 0) img.classList.add('loaded');
+  }
   else { img.style.display = 'none'; ph.style.display = 'flex'; ph.textContent = m.title.charAt(0).toUpperCase(); }
   modal.classList.add('open');
   window._detailScrollY = window.scrollY;
