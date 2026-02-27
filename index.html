@@ -1444,9 +1444,20 @@ async function mdFetch(path) {
 // ─────────────────────────────────────────────────────────────────────────────
 function proxyCover(url) {
   if (!url) return url;
-  // Convert any stored full CDN URL to the local proxy path
+  // Already a local proxy path
+  if (url.startsWith('/mdcovers/')) return url;
+  // Raw MangaDex CDN URL
   if (url.includes('uploads.mangadex.org/covers/')) {
     return url.replace('https://uploads.mangadex.org/covers/', '/mdcovers/');
+  }
+  // Old wsrv.nl wrapped URL — extract the original path and re-proxy
+  if (url.includes('wsrv.nl')) {
+    try {
+      const inner = decodeURIComponent(url.split('wsrv.nl/?url=')[1]?.split('&')[0] || '');
+      if (inner.includes('uploads.mangadex.org/covers/')) {
+        return ('https://' + inner).replace('https://uploads.mangadex.org/covers/', '/mdcovers/');
+      }
+    } catch {}
   }
   return url;
 }
